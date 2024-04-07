@@ -16,6 +16,7 @@ git clone https://github.com/sharn1999/palettes.git
 
 2. Войдите в папку и скачайте все нужные модули:
 cd palettes
+
 npm i
 
 4. Запустите проект:
