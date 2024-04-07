@@ -11,11 +11,17 @@
   },
   "dependencies": {
     "chroma-js": "^2.4.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "framer-motion": "^11.0.25",
+    "mongoose": "^8.3.0",
     "react": "^18.2.0",
     "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3",
     "react-slugify": "^3.0.3",
+    "react-transition-group": "^4.4.5",
+    "slugify": "^1.6.6",
     "styled-components": "^6.1.8"
   },
   "devDependencies": {
@@ -28,5 +34,10 @@
     "eslint-plugin-react-refresh": "^0.4.6",
     "sass": "^1.74.1",
     "vite": "^5.2.0"
-  }
+  },
+  "description": "<<<<<<< HEAD\r # React + Vite",
+  "main": "vite.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

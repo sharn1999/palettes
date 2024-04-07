@@ -1,0 +1,28 @@
+.privacy-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 1000;
+  }
+  
+  .privacy-enter {
+    opacity: 0;
+  }
+  .privacy-enter-active {
+    opacity: 1;
+    transition: opacity 300ms;
+  }
+  .privacy-exit {
+    opacity: 1;
+  }
+  .privacy-exit-active {
+    opacity: 0;
+    transition: opacity 300ms;
+  }

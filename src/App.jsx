@@ -3,7 +3,6 @@ import grid from './img/grid.svg';
 import Palettes from './components/Palettes';
 import Palette from './components/Palette';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-
 function App() {
   return (
     <BrowserRouter>

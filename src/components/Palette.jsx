@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { Link, useParams } from 'react-router-dom';
-import { palette } from '../myPalettes';
 import { SketchPicker } from 'react-color';
+import { fetchPalettes } from '../DB/paletteService';
 
 import arrow from '../img/arrow.svg';
 
@@ -12,12 +12,9 @@ const paletteIcon = <i className='fa-solid fa-palette'></i>
 
 function Palette() {
     const { id } = useParams();
-    const initialPalette = palette.find(pal => pal.name === id);
     
-    const [myPalette, setMyPalette] = useState(() => {
-        const savedPalette = localStorage.getItem(`myPalette-${id}`)
-        return savedPalette ? JSON.parse(savedPalette) : initialPalette
-    });
+    
+    const [myPalette, setMyPalette] = useState([])
     const [toRgb, setToRgb] = useState('hex');
     const [toggleColorPicker, setToggleColorPicker] = useState(false);
     const [colorPickerColor, setColorPickerColor] = useState('#fff');
@@ -26,11 +23,20 @@ function Palette() {
     const [randomText, setRandomText]  = useState('');
 
     const copyTexts = ['Paste Me!', 'Copied!','Oh Paste Me','Already Copied!', 'Nice!', 'Okay!', 'Done!', 'Good Choice!', 'Right One!'];
-    
 
     useEffect(() => {
-        localStorage.setItem(`myPalette-${id}`, JSON.stringify(myPalette))
-    }, [myPalette])
+        const fetchData = async () => {
+          try {
+            const result = await fetchPalettes();
+            const initialPalette = result.find(pal => pal.name === id);
+            setMyPalette(initialPalette);
+          } catch (error) {
+            console.error("Failed to fetch palettes:", error);
+          }
+        };
+    
+        fetchData();
+      }, []);
 
     const toggleToRGB = (e) => {
         if(e.target.value == 'rgb'){
@@ -65,31 +71,87 @@ function Palette() {
         }, 700)
     }
 
-    const createColor = () => {
+    const createColor = async (paletteName, colors) => {
+        try {
+            const response = await fetch('http://localhost:3000/palettes/addColor', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  paletteName,
+                  colors,
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Ошибка при добавлении цвета');
+            }
 
-        const newColors = [...myPalette.colors]
-        if(newColors.length < 20){
-            newColors.push(colorPickerColor)
-            setMyPalette({...myPalette, colors: newColors})
-        }else{
-            alert('You can only add 20 colors to a palette');
-        }
+            const updatedPalette = await response.json();
+            console.log('Обновленная палитра:', updatedPalette);
+
+            setMyPalette(updatedPalette)
+          } catch (error) {
+            console.error('Ошибка при сохранении цветов:', error);
+          }
+
+          
     }
 
     const handleCopyToClipboard = (e) => {
-        const text = e.target.innerText;
+        const text =e.target.querySelector('h4').innerText;
         navigator.clipboard.writeText(text)
     }
 
-    const deleteColor = (index) => {
-        const newColors = [...myPalette.colors]
-        newColors.splice(index, 1)
-        setMyPalette({...myPalette, colors: newColors})
+    const deleteColor = async (paletteName, colorIndex) => {
+        try {
+            const response = await fetch('http://localhost:3000/palettes/removeColor', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                paletteName: paletteName,
+                colorIndex: colorIndex 
+              }),
+            });
+        
+            if (!response.ok) {
+              throw new Error('Ошибка при удалении цвета');
+            }
+        
+            const updatedPalette = await response.json();
+            setMyPalette((prevPalettes) =>
+                prevPalettes.name === updatedPalette.name ? updatedPalette : prevPalettes
+            );
+          } catch (error) {
+            console.error('Ошибка при обращении к серверу:', error);
+          }
     }
 
-    const clear = () => {
-        setMyPalette({...myPalette, colors: []});
-    }
+    const clear = async (paletteName) => {
+        try {
+          const response = await fetch('http://localhost:3000/palettes/clearColors', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              paletteName,
+            }),
+          });
+      
+          if (!response.ok) {
+            throw new Error('Ошибка при обновлении палитры');
+          }
+      
+          const updatedPalette = await response.json();
+          setMyPalette(updatedPalette)
+        } catch (error) {
+          console.error('Ошибка при обращении к серверу:', error);
+        }
+      };
 
     const generateRandomText = () => {
         return copyTexts[Math.floor(Math.random() * copyTexts.length)];
@@ -114,7 +176,7 @@ function Palette() {
                     }} className="btn-icon">
                         {paletteIcon}
                     </button>
-                    <button className="btn-icon" onClick={() => {clear()}}>{brush} </button>
+                    <button className="btn-icon" onClick={() => {clear(myPalette.name)}}>{brush} </button>
                 </div>
             </div>
             {toggleColorPicker &&
@@ -126,14 +188,14 @@ function Palette() {
                             width="400px"
                         />
                         <button className='btn-icon' onClick={() => {
-                            createColor();
+                            createColor(myPalette.name, [colorPickerColor], setToggleColorPicker(!toggleColorPicker));
                         }}><i className="fa-solid fa-plus"></i> Добавить</button>
                     </div>
                     <div onClick={() => setToggleColorPicker(!toggleColorPicker)} className="color-picker-overlay"></div>
                 </div>
             }
             <div className="colors">
-                {myPalette.colors.map((color, index) => {
+                {myPalette.colors && myPalette.colors.map((color, index) => {
                     return <div style={{background: color}} 
                     key={index} 
                     className="full-color" 
@@ -148,9 +210,12 @@ function Palette() {
                         <h4>
                             {toRgb === 'hex' ? color : converToRGB(color)}
                         </h4>
-                        <button className="btn-icon" onClick={() => {
-                            deleteColor(index);
-                        }}>{del} </button>
+                        <button 
+                        className="btn-icon"
+                        onClick={(e) => {
+                            e.stopPropagation(); 
+                            deleteColor(myPalette.name, index);
+                          }}>{del} </button>
                     </div>
                 })}
             </div>
