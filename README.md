@@ -29,8 +29,7 @@ npm run dev
 ![image](https://github.com/sharn1999/palettes/assets/58104696/d94d3a83-826e-4819-8df3-0b4dccb75545)
 
 7. Запустите сервер (в другом терминале одновременно с реактом):
-cd palettes
-node src/DB/server.js
+node palettes/src/DB/server.js
 
 ##  Использованные библиотеки
 
