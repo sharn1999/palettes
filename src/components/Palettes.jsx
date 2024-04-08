@@ -4,12 +4,15 @@ import { Link } from 'react-router-dom'
 import slugify from 'react-slugify'
 import styled from 'styled-components'
 import { fetchPalettes } from '../DB/paletteService';
+import { SketchPicker } from 'react-color';
 
 
 function Palettes() {
 
-    const [myPalettes, setMyPalettes] = useState([])
-    const [paletteName, setPaletteName] = useState('')
+    const [myPalettes, setMyPalettes] = useState([]);
+    const [paletteName, setPaletteName] = useState('');
+    const [toggleColorPicker, setToggleColorPicker] = useState(false);
+    const [colorPickerColor, setColorPickerColor] = useState('#fff');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,17 +28,8 @@ function Palettes() {
 
       }, []);
 
-    const generateRandomColors = () => {
-        const colors = []
-
-        while(colors.length < 20) {
-            const color = chroma.random().hex();
-            if(chroma.valid(color)){
-                colors.push(color)
-            }
-        }
-
-        return colors
+    const handleColorChange = (color) => {
+        setColorPickerColor(color.hex);
     }
 
     async function deletePalette(paletteName) {
@@ -65,13 +59,20 @@ function Palettes() {
       }
 
 
-    const addPalette = async () => {
+    const addPalette = async (baseColor) => {
         if(slugify(paletteName)){
+            const [hue, sat, light] = chroma(baseColor).hsl();
+
+            const analogousColors = Array.from({ length: 5 }, (_, i) => {
+                const newHue = (hue + (i - 2) * 20 + 360) % 360;
+                return chroma.hsl(newHue, sat, light).hex();
+              });
+
             const newPalette = {
                 id: new Date().getTime(),
                 name: slugify(paletteName),
                 createdAt: new Date().getTime(),
-                colors: generateRandomColors()
+                colors: analogousColors
             }
     
             let exist = false;
@@ -95,6 +96,7 @@ function Palettes() {
                       throw new Error('Network response was not ok');
                     }
                     const data = await response.json();
+
                     console.log('Palette created:', data);
                   } catch (error) {
                     console.error('Failed to create palette:', error);
@@ -123,7 +125,7 @@ function Palettes() {
                     }} type="text"  />
                     <button onClick={() => {
                         if(paletteName){
-                            addPalette()
+                            setToggleColorPicker(true)
                         } else{
                             alert("Название палитры пустое!");
                         }
@@ -131,6 +133,23 @@ function Palettes() {
                 </div>
 
             </div>
+            {toggleColorPicker &&
+                <div className="color-picker-con">
+                    <div className="color-picker">
+                        <SketchPicker
+                            color={colorPickerColor} 
+                            onChange={handleColorChange} 
+                            width="400px"
+                        />
+                        <button className='btn-icon' onClick={() => {
+                            addPalette(colorPickerColor)
+                            setToggleColorPicker(!toggleColorPicker);
+                        }}><i className="fa-solid fa-plus"></i> Выберите базовый цвет</button>
+                    </div>
+                    <div onClick={() => setToggleColorPicker(!toggleColorPicker)} className="color-picker-overlay"></div>
+                </div>
+            }
+            
             <div className="palettes">
                 {
                     myPalettes && myPalettes.map((pal, index) => {
@@ -304,5 +323,51 @@ const PalettesStyled = styled.div`
         }
 
     }
+    .color-picker-con{
+        .sketch-picker{
+            box-shadow: 3px 3px 15px rgba(0,0,0, 0.5) !important;
+        }
+        .color-picker{
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 11;
+            button{
+                display: flex;
+                align-items: center;
+                gap: .5rem;
+                box-shadow: 2px 2px 15px rgba(0,0,0,0.5);
+            }
+        }
+
+        .color-picker-overlay{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0, 0.8);
+            z-index: 10;
+        }
+        .btn-icon{
+            outline: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            border: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: .5rem 1rem;
+            border-radius: 7px;
+            color: white;
+            background: #A855F7;
+            transition: all 0.3s ease-in-out;
+            margin-right: 10px;
+            &:hover{
+                background: #0D0B33;
+            }
+        }
 `;
 export default Palettes
