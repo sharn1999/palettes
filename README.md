@@ -25,9 +25,8 @@ npm run dev
 
 5. Перейдите по ссылке http://localhost:5173/
 
-6. Так же нужно скачать mongoDB и запустить сервер с портом 27017 (смотерть скриншоты):
-![image](https://github.com/sharn1999/palettes/assets/58104696/638af84d-0894-4d25-b3ce-3f89f5e0d5a1)
-
+6. Так же нужно скачать mongoDB и запустить сервер с портом 27017 нажав кнопку connect (смотерть скриншоты):
+![image](https://github.com/sharn1999/palettes/assets/58104696/d94d3a83-826e-4819-8df3-0b4dccb75545)
 
 7. Запустите сервер (в другом терминале одновременно с реактом):
 cd palettes
